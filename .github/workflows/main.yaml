@@ -1,4 +1,4 @@
-name: Run Shell Script
+name: Run and Commit Script Output
 
 on:
   push:
@@ -6,15 +6,28 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: write  # Needed to allow push from GitHub Actions
+
 jobs:
-  run-script:
+  run-and-commit:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Make 200.sh executable and run it
+    - name: Run 200.sh
       run: |
         chmod +x ./200.sh
         ./200.sh
+
+    - name: Commit and push output files
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        git diff --cached --quiet || git commit -m "chore: add/update files from 200.sh script"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
